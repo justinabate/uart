@@ -7,143 +7,139 @@
 // driven high for one clock cycle.
 // 
 // Set Parameter CLKS_PER_BIT as follows:
-// CLKS_PER_BIT = (Frequency of i_Clock)/(Frequency of UART)
+// CLKS_PER_BIT = (Frequency of i_clk)/(Frequency of UART)
 // Example: 10 MHz Clock, 115200 baud UART
 // (10000000)/(115200) = 87
   
-module uart_rx 
-  #(parameter CLKS_PER_BIT)
-  (
-   input        i_Clock,
-   input        i_Rx_Serial,
-   output       o_Rx_DV,
-   output [7:0] o_Rx_Byte
-   );
+module uart_rx #(
+  parameter CLKS_PER_BIT
+)(
+  input        i_clk,
+  // input serial data line
+  input        i_rxd,
+  // output AXIS master port
+  output       o_m_axis_tvalid,
+  output [7:0] o_m_axis_tdata
+);
     
-  parameter s_IDLE         = 3'b000;
-  parameter s_RX_START_BIT = 3'b001;
-  parameter s_RX_DATA_BITS = 3'b010;
-  parameter s_RX_STOP_BIT  = 3'b011;
-  parameter s_CLEANUP      = 3'b100;
+  parameter IDLE    = 3'b000;
+  parameter START   = 3'b001;
+  parameter RXDATA  = 3'b010;
+  parameter STOP    = 3'b011;
+  parameter PAUSE   = 3'b100;
    
-  reg           r_Rx_Data_R = 1'b1;
-  reg           r_Rx_Data   = 1'b1;
+  // synchroniser
+  reg [1:0]     r_rxd_sync;
+  wire          w_rxd_sync;
+  
+  reg [2:0]     r_fsm_cs    = 0;
+  reg [7:0]     r_clk_count = 0;
+  reg [2:0]     r_bit_idx   = 0; // log2(8) 
+
+  // regs for AXIS output
+  reg [7:0]     r_tdata     = 0;
+  reg           r_tvalid    = 0;
+  reg           r_sample_valid;
    
-  reg [7:0]     r_Clock_Count = 0;
-  reg [2:0]     r_Bit_Index   = 0; //8 bits total
-  reg [7:0]     r_Rx_Byte     = 0;
-  reg           r_Rx_DV       = 0;
-  reg [2:0]     r_SM_Main     = 0;
+  // double-flop synchronise the rxd serial data
+  always @(posedge i_clk) begin // : p_rxd_synchroniser
+    r_rxd_sync = {r_rxd_sync[0], i_rxd};
+  end
+  assign w_rxd_sync = r_rxd_sync[1];
    
-  // Purpose: Double-register the incoming data.
-  // This allows it to be used in the UART RX Clock Domain.
-  // (It removes problems caused by metastability)
-  always @(posedge i_Clock)
-    begin
-      r_Rx_Data_R <= i_Rx_Serial;
-      r_Rx_Data   <= r_Rx_Data_R;
-    end
-   
-   
-  // Purpose: Control RX state machine
-  always @(posedge i_Clock)
-    begin
+
+  always @(posedge i_clk) begin // : p_fsm
        
-      case (r_SM_Main)
-        s_IDLE :
-          begin
-            r_Rx_DV       <= 1'b0;
-            r_Clock_Count <= 0;
-            r_Bit_Index   <= 0;
-             
-            if (r_Rx_Data == 1'b0)          // Start bit detected
-              r_SM_Main <= s_RX_START_BIT;
-            else
-              r_SM_Main <= s_IDLE;
+    case (r_fsm_cs)
+
+
+      IDLE : begin
+        r_tvalid    <= 1'b0;
+        r_sample_valid <= 1'b0;
+        r_clk_count <= 0;
+        r_bit_idx   <= 0;
+        
+        // Start bit detected
+        if (w_rxd_sync == 1'b0) begin          
+          r_fsm_cs <= START;
+        end else begin
+          r_fsm_cs <= IDLE;
+        end
+      end
+       
+      
+      START : begin
+        if (r_clk_count == (CLKS_PER_BIT-1)/2) begin
+          // ensure middle of start bit is still low
+          if (w_rxd_sync == 1'b0) begin
+            r_fsm_cs    <= RXDATA;
+            r_clk_count <= 0;  // reset counter, found the middle
+          end else begin
+            r_fsm_cs <= IDLE;
           end
-         
-        // Check middle of start bit to make sure it's still low
-        s_RX_START_BIT :
-          begin
-            if (r_Clock_Count == (CLKS_PER_BIT-1)/2)
-              begin
-                if (r_Rx_Data == 1'b0)
-                  begin
-                    r_Clock_Count <= 0;  // reset counter, found the middle
-                    r_SM_Main     <= s_RX_DATA_BITS;
-                  end
-                else
-                  r_SM_Main <= s_IDLE;
-              end
-            else
-              begin
-                r_Clock_Count <= r_Clock_Count + 1;
-                r_SM_Main     <= s_RX_START_BIT;
-              end
-          end // case: s_RX_START_BIT
-         
-         
+        end else begin
+          r_fsm_cs    <= START;
+          r_clk_count <= r_clk_count + 1;
+        end
+      end 
+       
+       
+      RXDATA : begin
+        
         // Wait CLKS_PER_BIT-1 clock cycles to sample serial data
-        s_RX_DATA_BITS :
-          begin
-            if (r_Clock_Count < CLKS_PER_BIT-1)
-              begin
-                r_Clock_Count <= r_Clock_Count + 1;
-                r_SM_Main     <= s_RX_DATA_BITS;
-              end
-            else
-              begin
-                r_Clock_Count          <= 0;
-                r_Rx_Byte[r_Bit_Index] <= r_Rx_Data;
-                 
-                // Check if we have received all bits
-                if (r_Bit_Index < 7)
-                  begin
-                    r_Bit_Index <= r_Bit_Index + 1;
-                    r_SM_Main   <= s_RX_DATA_BITS;
-                  end
-                else
-                  begin
-                    r_Bit_Index <= 0;
-                    r_SM_Main   <= s_RX_STOP_BIT;
-                  end
-              end
-          end // case: s_RX_DATA_BITS
-     
-     
-        // Receive Stop bit.  Stop bit = 1
-        s_RX_STOP_BIT :
-          begin
-            // Wait CLKS_PER_BIT-1 clock cycles for Stop bit to finish
-            if (r_Clock_Count < CLKS_PER_BIT-1)
-              begin
-                r_Clock_Count <= r_Clock_Count + 1;
-                r_SM_Main     <= s_RX_STOP_BIT;
-              end
-            else
-              begin
-                r_Rx_DV       <= 1'b1;
-                r_Clock_Count <= 0;
-                r_SM_Main     <= s_CLEANUP;
-              end
-          end // case: s_RX_STOP_BIT
-     
-         
-        // Stay here 1 clock
-        s_CLEANUP :
-          begin
-            r_SM_Main <= s_IDLE;
-            r_Rx_DV   <= 1'b0;
+        if (r_clk_count == CLKS_PER_BIT-1) begin
+          r_clk_count        <= 0;
+          r_tdata[r_bit_idx] <= w_rxd_sync;
+          r_sample_valid    <= 1'b1;
+           
+          if (r_bit_idx == 7) begin
+            r_fsm_cs  <= STOP; // transition after 8 bits received
+            r_bit_idx <= 0;
+          end else begin
+            r_fsm_cs  <= RXDATA;
+            r_bit_idx <= r_bit_idx + 1;
           end
-         
-         
-        default :
-          r_SM_Main <= s_IDLE;
-         
-      endcase
-    end   
+        end else begin
+          r_fsm_cs        <= RXDATA;
+          r_clk_count     <= r_clk_count + 1;
+          r_sample_valid <= 1'b0;
+        end
+
+      end
+    
+    
+      STOP : begin
+
+        r_sample_valid <= 1'b0;
+
+        // Wait CLKS_PER_BIT-1 clock cycles for Stop bit to finish
+        // Stop bit = 1'b1 (not checked for correctness)
+        if (r_clk_count == CLKS_PER_BIT-1) begin
+          r_tvalid    <= 1'b1;
+          r_clk_count <= 0;
+          r_fsm_cs    <= PAUSE;
+        end else begin
+          r_clk_count <= r_clk_count + 1;
+          r_fsm_cs    <= STOP;
+        end
+
+      end
+    
+
+      PAUSE : begin
+        r_fsm_cs  <= IDLE;
+        r_tvalid  <= 1'b0;
+      end
+
+      
+      default : begin
+        r_fsm_cs <= IDLE;
+      end
+
+    endcase
+  end   
    
-  assign o_Rx_DV   = r_Rx_DV;
-  assign o_Rx_Byte = r_Rx_Byte;
+  assign o_m_axis_tdata   = r_tdata;
+  assign o_m_axis_tvalid  = r_tvalid;
    
 endmodule // uart_rx
