@@ -1,2 +1,2 @@
-# uart
-UART RX to AXI stream master; UART TX via AXI stream slave;
+Verilog UART via nandland
+https://www.nandland.com/vhdl/modules/module-uart-serial-port-rs232.html
