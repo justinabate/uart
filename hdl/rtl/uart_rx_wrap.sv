@@ -13,7 +13,10 @@ module uart_rx_wrap #(
   // output AXIS master port
   input        i_m_axis_tready,
   output       o_m_axis_tvalid,
-  output [7:0] o_m_axis_tdata
+  output [7:0] o_m_axis_tdata,
+  // output status signals
+  output       o_rxd_busy
+
 );
 
 
@@ -26,9 +29,13 @@ module uart_rx_wrap #(
     .CLKS_PER_BIT(CLKS_PER_BIT)
   ) i_uart_rx (
     .i_clk(i_clk),
+    // input serial data line
     .i_rxd(i_rxd),
+    // output AXIS master port
     .o_m_axis_tvalid(w_uart_rx_tvalid),
-    .o_m_axis_tdata(w_uart_rx_tdata)
+    .o_m_axis_tdata(w_uart_rx_tdata),
+    // output status signals
+    .o_rxd_busy(o_rxd_busy)
   );
 
 
@@ -69,7 +76,6 @@ module uart_rx_wrap #(
       always_ff @(posedge i_clk) begin
         r_fifo_rvld <= w_fifo_rena ? 1'b1 : 1'b0;
       end
-
 
       assign w_fifo_rena = i_m_axis_tready && ~w_fifo_empt;
       assign o_m_axis_tvalid = r_fifo_rvld;

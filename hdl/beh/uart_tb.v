@@ -22,8 +22,10 @@ module uart_tb ();
   // Testcase 1: Use a 10 MHz clock with 115200 baud UART
   // ... 10,000,000 / 115,200 = 87 Clocks Per Bit
 
-  // Testcase 1: Set refclk 16x faster than baud rate (i.e. clks_per_bit = 16)
+  // Testcase 2: Set refclk 16x faster than baud rate (i.e. clks_per_bit = 16)
   // ... 115,200 * 16 = 1,843,200 Hz (1.8432 MHz) 
+
+  // 3: 64x = 7.3728 MHz
 
   parameter         c_baud_rate     = 115200;                 // target UART baud rate
   parameter         c_clk_rate      = c_baud_rate*16;         // 10e6; // target w_clk (Hz)

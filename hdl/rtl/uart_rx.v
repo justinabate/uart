@@ -12,14 +12,16 @@
 // (10000000)/(115200) = 87
   
 module uart_rx #(
-  parameter CLKS_PER_BIT
+  parameter CLKS_PER_BIT = 16
 )(
   input        i_clk,
   // input serial data line
   input        i_rxd,
   // output AXIS master port
   output       o_m_axis_tvalid,
-  output [7:0] o_m_axis_tdata
+  output [7:0] o_m_axis_tdata,
+  // output status signals
+  output       o_rxd_busy
 );
     
   parameter IDLE    = 3'b000;
@@ -141,5 +143,8 @@ module uart_rx #(
    
   assign o_m_axis_tdata   = r_tdata;
   assign o_m_axis_tvalid  = r_tvalid;
+
+  assign o_rxd_busy = (r_fsm_cs == IDLE) ? 1'b0 : 1'b1;
+
    
 endmodule // uart_rx

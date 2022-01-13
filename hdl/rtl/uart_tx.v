@@ -12,8 +12,9 @@
 // (10000000)/(115200) = 87
   
 module uart_tx #(
-  parameter CLKS_PER_BIT
+  parameter CLKS_PER_BIT = 16
 )(
+  // clk, rst
   input       i_clk,
   // input AXIS slave port
   output      o_s_axis_tready,
