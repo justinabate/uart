@@ -5,7 +5,7 @@ mkdir -p libraries
 mkdir -p libraries/work
 
 # run
-vlog ../../hdl/beh/uart_tb.v
+vlog -sv ../../hdl/beh/uart_tb.v
 vsim work.uart_tb -t 1fs -do ./includes/run.do
 
 # teardown

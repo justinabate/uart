@@ -130,7 +130,7 @@ module uart_tx #(
     endcase
   end
  
-  assign o_s_axis_tready = ~r_busy;
+  assign o_s_axis_tready = ~(r_busy || i_s_axis_tvalid);
   assign o_txd_busy = r_busy;
   assign o_txd_done = r_done;
    
