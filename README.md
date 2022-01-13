@@ -20,7 +20,7 @@ $ ./vsim.sh
 ```
 
 # Change log
-- Added Vivado build for Arty Rev C
+- 75a457d: Added Vivado build for Arty Rev C
 - 2902ec6: Added optional buffer FIFO to RX datapath (uart_rx_wrap)
 - f712b6c: Added vsim setup<br/>
 - 8dce517: Changed uart_rx output port to AXI stream master <br/>
