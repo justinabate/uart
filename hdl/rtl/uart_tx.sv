@@ -26,19 +26,18 @@ module uart_tx #(
   output      o_txd_busy,
   output      o_txd_done
 );
-  
-  parameter IDLE    = 3'b000;
-  parameter START   = 3'b001;
-  parameter TXDATA  = 3'b010;
-  parameter STOP    = 3'b011;
-  parameter PAUSE   = 3'b100;
-   
-  reg [2:0]    r_fsm_cs     = 0; // current state
-  reg [7:0]    r_clk_count  = 0;
-  reg [2:0]    r_bit_idx    = 0;
-  reg [7:0]    r_tdata      = 0;
-  reg          r_done       = 0;
-  reg          r_busy       = 0;
+
+  typedef enum logic [2:0] {IDLE, START, TXDATA, STOP, PAUSE} t_fsm;
+  t_fsm r_fsm_cs;
+
+  //! counter for clocks per bit
+  parameter g_W = $clog2(CLKS_PER_BIT);
+  reg [g_W-1:0] r_clk_count = 0;
+
+  reg [2:0]     r_bit_idx    = 0;
+  reg [7:0]     r_tdata      = 0;
+  reg           r_done       = 0;
+  reg           r_busy       = 0;
      
   always @(posedge i_clk) begin
        
@@ -131,7 +130,7 @@ module uart_tx #(
     endcase
   end
  
-  assign o_s_axis_tready = ~(r_busy || i_s_axis_tvalid);
+  assign o_s_axis_tready = ~(r_busy); // || i_s_axis_tvalid);
   assign o_txd_busy = r_busy;
   assign o_txd_done = r_done;
    

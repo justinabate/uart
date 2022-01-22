@@ -10,12 +10,14 @@
 
 `timescale 1ns/10ps
  
-`include "../rtl/uart_rx.v"
 `include "../rtl/uart_rx_wrap.sv"
-`include "../rtl/uart_tx.v"
-`include "../../../memory_components/hdl/rtl/sram_tp_true.sv"
-`include "../../../memory_components/hdl/rtl/fifo_sync_sram_based.sv"
- 
+`include "../rtl/uart_rx.sv"
+`include "../../../memory_components/hdl/rtl/axis_fifo_wrap.sv"
+`include "../../../memory_components/hdl/rtl/fifo_sync.sv"
+`include "../../../axis_components/hdl/rtl/axis_bridge.sv"
+`include "../rtl/uart_tx_wrap.sv"
+`include "../rtl/uart_tx.sv"
+
 
 module uart_tb ();
  
@@ -32,7 +34,7 @@ module uart_tb ();
 
   parameter         c_clk_per_ns    = 1e9/c_clk_rate;         // 1 / fclk
   parameter integer c_bit_per_ns    = 1e9/c_baud_rate;        // 1 / 115200 = 8681 ns per serial bit
-  parameter integer c_clks_per_bit  = c_clk_rate/c_baud_rate; // 10e6 / 115200 = 87 cycles per serial bit
+  parameter integer C_CLKS_PER_BIT  = c_clk_rate/c_baud_rate; // 10e6 / 115200 = 87 cycles per serial bit
    
   // Clock and Reset signals
   reg         w_rst_n = 1'b1; // init to high
@@ -84,9 +86,9 @@ module uart_tb ();
 
   // driven by task
   uart_rx_wrap #(
-    .CLKS_PER_BIT(c_clks_per_bit),
+    .CLKS_PER_BIT(C_CLKS_PER_BIT),
     .USE_FIFO(1)
-  ) i_uart_rx_wrap (
+  ) inst_uart_rx_wrap (
     // clk, rst
     .i_clk(w_clk),
     .i_rst_n(w_rst_n),
@@ -95,19 +97,23 @@ module uart_tb ();
     // output AXIS master port
     .i_m_axis_tready(w_uart_tx_tready),
     .o_m_axis_tvalid(w_uart_rx_0_tvalid),
-    .o_m_axis_tdata(w_uart_rx_0_tdata)
+    .o_m_axis_tdata(w_uart_rx_0_tdata),
+    .o_rxd_busy()
   );
 
   // loopback
-  uart_tx #(
-    .CLKS_PER_BIT(c_clks_per_bit)
-  ) i_uart_tx (
-
+  uart_tx_wrap #(
+    .CLKS_PER_BIT(C_CLKS_PER_BIT),
+    .USE_FIFO(1),
+    .G_AXIS_TDATA_SIZE(8)
+  ) inst_uart_tx_wrap (
     .i_clk(w_clk),
+    .i_arst_n(w_rst_n),
 
     .o_s_axis_tready(w_uart_tx_tready),
     .i_s_axis_tvalid(w_uart_rx_0_tvalid),
     .i_s_axis_tdata(w_uart_rx_0_tdata),
+    .i_s_axis_thold(1'b0),
 
     .o_txd(w_txd),
     .o_txd_busy(),
@@ -116,14 +122,13 @@ module uart_tb ();
 
   // tx checker
   uart_rx #(
-    .CLKS_PER_BIT(c_clks_per_bit)
+    .CLKS_PER_BIT(C_CLKS_PER_BIT)
   ) i_uart_rx_1 (
     .i_clk(w_clk),
-
     .i_rxd(w_txd),
-
     .o_m_axis_tvalid(w_uart_rx_1_tvalid),
-    .o_m_axis_tdata(w_uart_rx_1_tdata)
+    .o_m_axis_tdata(w_uart_rx_1_tdata),
+    .o_rxd_busy()
   );   
  
    

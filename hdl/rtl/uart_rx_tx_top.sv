@@ -16,12 +16,10 @@ module uart_rx_tx_top (
 
 );
  
-  parameter         c_baud_rate     = 115200;                 // target UART baud rate
-  parameter         c_clk_rate      = c_baud_rate*64;         // 7.3728 MHz
-  parameter integer c_clks_per_bit  = c_clk_rate/c_baud_rate; // 64
+  parameter int C_CLK_RATE      = 100e6;
+  parameter int C_BAUD_RATE     = 115200;                 // target UART baud rate
+  parameter int C_CLKS_PER_BIT  = C_CLK_RATE/C_BAUD_RATE; // 
 
-  logic        w_uart_refclk;
-  logic        w_mmcm_locked;
 
   logic        w_uart_tx_s_axis_tready;
   logic        w_uart_rx_m_axis_tvalid;  
@@ -29,22 +27,12 @@ module uart_rx_tx_top (
   logic        w_txd_busy, w_rxd_busy;
 
 
-mmcm #() i_mmcm (
-  // Clock in ports
-  .i_clk(i_clk), // input         
-  // Status and control signals
-  .resetn(i_rst_n), // input         
-  // Clock out ports
-  .o_clk(w_uart_refclk), // output
-  .o_locked(w_mmcm_locked) // output        
- );
-
   uart_rx_wrap #(
-    .CLKS_PER_BIT(c_clks_per_bit),
+    .CLKS_PER_BIT(C_CLKS_PER_BIT),
     .USE_FIFO(1)
-  ) i_uart_rx_wrap (
+  ) inst_uart_rx_wrap (
     // clk, rst
-    .i_clk(w_uart_refclk),
+    .i_clk(i_clk),
     .i_rst_n(i_rst_n),
     // input serial data line
     .i_rxd(i_rxd),
@@ -57,11 +45,14 @@ mmcm #() i_mmcm (
   );
 
   // loopback
-  uart_tx #(
-    .CLKS_PER_BIT(c_clks_per_bit)
-  ) i_uart_tx (
+  uart_tx_wrap #(
+    .CLKS_PER_BIT(C_CLKS_PER_BIT),
+    .USE_FIFO(1),
+    .G_AXIS_TDATA_SIZE(8)
+  ) inst_uart_tx_wrap (
     // clk, rst
-    .i_clk(w_uart_refclk),
+    .i_clk(i_clk),
+    .i_arst_n(i_rst_n),
     // input AXIS slave port
     .o_s_axis_tready(w_uart_tx_s_axis_tready),
     .i_s_axis_tvalid(w_uart_rx_m_axis_tvalid),
@@ -76,7 +67,7 @@ mmcm #() i_mmcm (
 
   assign o_led[0] = w_rxd_busy;
   assign o_led[1] = w_txd_busy;
-  assign o_led[3] = w_mmcm_locked;
+  assign o_led[3] = (~i_rst_n) ? '1 : '0;
   assign o_gnd = 1'b0;
    
    

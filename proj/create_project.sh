@@ -1,8 +1,8 @@
 #!/bin/sh
 
-PROJ_NAME="arty_uart_rx_tx"
-vivado -mode batch -source $PROJ_NAME.tcl
+PROJ_NAME="uart_tx_rx"
+vivado -mode batch -source create_vivado_project.tcl
 cd $PROJ_NAME && vivado -mode gui $PROJ_NAME.xpr
 
 rm -f *.jou *.log
-rm -r .Xil/
+rm -rf .Xil/

@@ -1,9 +1,12 @@
 `timescale 1ns/10ps
 
+
+
+
 //! direct output or FIFO buffered output 
 module uart_rx_wrap #(
-  parameter CLKS_PER_BIT,
-  parameter USE_FIFO = 1
+  parameter int CLKS_PER_BIT = 16,
+  parameter bit USE_FIFO = 1
 )(
   // clk, rst
   input        i_clk,
@@ -24,10 +27,45 @@ module uart_rx_wrap #(
   logic        w_uart_rx_tvalid;
 
 
+  generate
+
+    if (USE_FIFO) begin : gen_fifo
+
+      axis_fifo_wrap #(
+        .G_FIFO_DEPTH(64),
+        .G_WORD_WIDTH( $size(o_m_axis_tdata) )
+      ) inst_axis_fifo_wrap (
+
+        .i_clk(i_clk),    // input; Transfer clock 
+        .i_arst_n(i_rst_n), // input; Asynchronous reset, active low
+
+        // input AXIS slave port
+        .o_s_axis_tready(), // output logic                         
+        .i_s_axis_tvalid(w_uart_rx_tvalid), // input  logic                         
+        .i_s_axis_tdata(w_uart_rx_tdata),  // input  logic [G_WORD_WIDTH-1:0] 
+        .i_s_axis_thold(1'b0),  // input  logic [G_HOLD_WIDTH-1:0]; range 0 to G_WORD_WIDTH/8-1; 0=hold all; 1= hold [7:0], etc.
+
+        // output AXIS master port
+        .i_m_axis_tready(i_m_axis_tready), // input  logic                         
+        .o_m_axis_tvalid(o_m_axis_tvalid), // output logic                         
+        .o_m_axis_tdata(o_m_axis_tdata),  // output logic [G_WORD_WIDTH-1:0] 
+        .o_m_axis_thold()   // output logic [G_HOLD_WIDTH-1:0]    
+      );
+
+    end else begin : gen_passthru
+
+      //! if no FIFO in use, wire UART AXIS signals directly to output 
+      assign o_m_axis_tvalid = w_uart_rx_tvalid;
+      assign o_m_axis_tdata = w_uart_rx_tdata;
+
+    end
+  endgenerate
+
+
   // main UART logic
   uart_rx #(
     .CLKS_PER_BIT(CLKS_PER_BIT)
-  ) i_uart_rx (
+  ) inst_uart_rx (
     .i_clk(i_clk),
     // input serial data line
     .i_rxd(i_rxd),
@@ -37,58 +75,6 @@ module uart_rx_wrap #(
     // output status signals
     .o_rxd_busy(o_rxd_busy)
   );
-
-
-  generate
-
-    if (USE_FIFO) begin
-
-      //! FIFO read enable, empty
-      logic        w_fifo_rena, w_fifo_empt; 
-      //! FIFO read data 
-      logic [7:0]  w_fifo_rdat; 
-      //! FIFO read data valid 
-      logic        r_fifo_rvld; 
-
-
-      fifo_sync_sram_based #(
-        .g_D( 32 ),
-        .g_W( 8 )
-      ) i_fifo (
-        .i_clk  ( i_clk ),
-        .i_rst_n( i_rst_n ),
-
-        .i_wena( w_uart_rx_tvalid ),
-        .i_wdat( w_uart_rx_tdata ),
-        .o_werr(  ),
-
-        .i_rena( w_fifo_rena ),
-        .o_rdat( w_fifo_rdat ),
-        .o_rerr(  ),
-
-        .o_full(  ),
-        .o_empt( w_fifo_empt ),
-        .o_flvl(  ) 
-      );      
-
-
-      //! read data is valid 1 cycle after read enable signal
-      always_ff @(posedge i_clk) begin
-        r_fifo_rvld <= w_fifo_rena ? 1'b1 : 1'b0;
-      end
-
-      assign w_fifo_rena = i_m_axis_tready && ~w_fifo_empt;
-      assign o_m_axis_tvalid = r_fifo_rvld;
-      assign o_m_axis_tdata = w_fifo_rdat;
-
-    end else begin
-
-      //! if no FIFO in use, wire UART AXIS signals directly to output 
-      assign o_m_axis_tvalid = w_uart_rx_tvalid;
-      assign o_m_axis_tdata = w_uart_rx_tdata;
-
-    end
-  endgenerate
 
 
 endmodule

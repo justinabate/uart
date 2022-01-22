@@ -23,19 +23,18 @@ module uart_rx #(
   // output status signals
   output       o_rxd_busy
 );
-    
-  parameter IDLE    = 3'b000;
-  parameter START   = 3'b001;
-  parameter RXDATA  = 3'b010;
-  parameter STOP    = 3'b011;
-  parameter PAUSE   = 3'b100;
+
+  typedef enum logic [2:0] {IDLE, START, RXDATA, STOP, PAUSE} t_fsm;
+  t_fsm         r_fsm_cs;
    
   // synchroniser
   reg [1:0]     r_rxd_sync;
   wire          w_rxd_sync;
   
-  reg [2:0]     r_fsm_cs    = 0;
-  reg [7:0]     r_clk_count = 0;
+  //! counter for clocks per bit
+  parameter g_W = $clog2(CLKS_PER_BIT);
+  reg [g_W-1:0] r_clk_count = 0;
+
   reg [2:0]     r_bit_idx   = 0; // log2(8) 
 
   // regs for AXIS output
