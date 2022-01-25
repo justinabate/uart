@@ -3,15 +3,15 @@
 proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
- "[file normalize "$origin_dir/../../axis_components/hdl/rtl/axis_bridge.sv"]"\
- "[file normalize "$origin_dir/../../memory_components/hdl/rtl/axis_fifo_wrap.sv"]"\
- "[file normalize "$origin_dir/../../memory_components/hdl/rtl/fifo_sync.sv"]"\
- "[file normalize "$origin_dir/../hdl/rtl/uart_rx.sv"]"\
- "[file normalize "$origin_dir/../hdl/rtl/uart_rx_wrap.sv"]"\
- "[file normalize "$origin_dir/../hdl/rtl/uart_tx.sv"]"\
- "[file normalize "$origin_dir/../hdl/rtl/uart_tx_wrap.sv"]"\
- "[file normalize "$origin_dir/../hdl/rtl/uart_rx_tx_top.sv"]"\
- "[file normalize "$origin_dir/../phys/arty_rev_c_pin_constraints.xdc"]"\
+ "[file normalize "$origin_dir/../../../axis_components/hdl/rtl/axis_bridge.sv"]"\
+ "[file normalize "$origin_dir/../../../memory_components/hdl/rtl/axis_fifo_wrap.sv"]"\
+ "[file normalize "$origin_dir/../../../memory_components/hdl/rtl/fifo_sync.sv"]"\
+ "[file normalize "$origin_dir/../../hdl/rtl/uart_rx.sv"]"\
+ "[file normalize "$origin_dir/../../hdl/rtl/uart_rx_wrap.sv"]"\
+ "[file normalize "$origin_dir/../../hdl/rtl/uart_tx.sv"]"\
+ "[file normalize "$origin_dir/../../hdl/rtl/uart_tx_wrap.sv"]"\
+ "[file normalize "$origin_dir/../../hdl/rtl/uart_rx_tx_top.sv"]"\
+ "[file normalize "$origin_dir/../../phy/arty_rev_c_pin_constraints.xdc"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
@@ -128,54 +128,54 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 # Set 'sources_1' fileset object
 set obj [get_filesets sources_1]
 set files [list \
- [file normalize "${origin_dir}/../../axis_components/hdl/rtl/axis_bridge.sv"] \
- [file normalize "${origin_dir}/../../memory_components/hdl/rtl/axis_fifo_wrap.sv"] \
- [file normalize "${origin_dir}/../../memory_components/hdl/rtl/fifo_sync.sv"] \
- [file normalize "${origin_dir}/../hdl/rtl/uart_rx.sv"] \
- [file normalize "${origin_dir}/../hdl/rtl/uart_rx_wrap.sv"] \
- [file normalize "${origin_dir}/../hdl/rtl/uart_tx.sv"] \
- [file normalize "${origin_dir}/../hdl/rtl/uart_tx_wrap.sv"] \
- [file normalize "${origin_dir}/../hdl/rtl/uart_rx_tx_top.sv"] \
+ [file normalize "${origin_dir}/../../../axis_components/hdl/rtl/axis_bridge.sv"] \
+ [file normalize "${origin_dir}/../../../memory_components/hdl/rtl/axis_fifo_wrap.sv"] \
+ [file normalize "${origin_dir}/../../../memory_components/hdl/rtl/fifo_sync.sv"] \
+ [file normalize "${origin_dir}/../../hdl/rtl/uart_rx.sv"] \
+ [file normalize "${origin_dir}/../../hdl/rtl/uart_rx_wrap.sv"] \
+ [file normalize "${origin_dir}/../../hdl/rtl/uart_tx.sv"] \
+ [file normalize "${origin_dir}/../../hdl/rtl/uart_tx_wrap.sv"] \
+ [file normalize "${origin_dir}/../../hdl/rtl/uart_rx_tx_top.sv"] \
 ]
 add_files -norecurse -fileset $obj $files
 
 # Set 'sources_1' fileset file properties for remote files
-set file "$origin_dir/../../axis_components/hdl/rtl/axis_bridge.sv"
+set file "$origin_dir/../../../axis_components/hdl/rtl/axis_bridge.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../../memory_components/hdl/rtl/axis_fifo_wrap.sv"
+set file "$origin_dir/../../../memory_components/hdl/rtl/axis_fifo_wrap.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../../memory_components/hdl/rtl/fifo_sync.sv"
+set file "$origin_dir/../../../memory_components/hdl/rtl/fifo_sync.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../hdl/rtl/uart_rx.sv"
+set file "$origin_dir/../../hdl/rtl/uart_rx.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../hdl/rtl/uart_rx_wrap.sv"
+set file "$origin_dir/../../hdl/rtl/uart_rx_wrap.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../hdl/rtl/uart_tx.sv"
+set file "$origin_dir/../../hdl/rtl/uart_tx.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../hdl/rtl/uart_tx_wrap.sv"
+set file "$origin_dir/../../hdl/rtl/uart_tx_wrap.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
 
-set file "$origin_dir/../hdl/rtl/uart_rx_tx_top.sv"
+set file "$origin_dir/../../hdl/rtl/uart_rx_tx_top.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property -name "file_type" -value "SystemVerilog" -objects $file_obj
@@ -197,9 +197,9 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 set obj [get_filesets constrs_1]
 
 # Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/../phys/arty_rev_c_pin_constraints.xdc"]"
+set file "[file normalize "$origin_dir/../../phy/arty_rev_c_pin_constraints.xdc"]"
 set file_added [add_files -norecurse -fileset $obj [list $file]]
-set file "$origin_dir/../phys/arty_rev_c_pin_constraints.xdc"
+set file "$origin_dir/../../phy/arty_rev_c_pin_constraints.xdc"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
 set_property -name "file_type" -value "XDC" -objects $file_obj
@@ -530,3 +530,14 @@ move_dashboard_gadget -name {drc_1} -row 2 -col 0
 move_dashboard_gadget -name {timing_1} -row 0 -col 1
 move_dashboard_gadget -name {utilization_2} -row 1 -col 1
 move_dashboard_gadget -name {methodology_1} -row 2 -col 1
+
+
+# run implementation
+set script_jobs 4
+reset_run synth_1
+launch_runs synth_1 -jobs $script_jobs
+wait_on_run synth_1
+
+reset_run impl_1
+launch_runs impl_1 -to_step write_bitstream -jobs $script_jobs
+wait_on_run impl_1

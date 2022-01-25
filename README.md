@@ -9,9 +9,9 @@ https://www.nandland.com/vhdl/modules/module-uart-serial-port-rs232.html<br/>
 
 # Usage
 ## Build for ARTY Rev C (xc7a35t)
-cd to proj/ <br/>
+cd to prj/vivado/ <br/>
 ```
-$ ./create_project.sh
+$ ./build_vivado.sh
 ```
 ## Simulation
 cd to sim/vsim/ <br/>

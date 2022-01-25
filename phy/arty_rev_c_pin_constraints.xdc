@@ -52,9 +52,9 @@ set_property -dict { PACKAGE_PIN C2    IOSTANDARD LVCMOS33 } [get_ports { i_rst_
 ## Pins 1-4  are top row, left-to-right (while holding board with RJ45 port at left)
 ## Pins 7-10 are bot row, left-to-right (while holding board with RJ45 port at left)
 # set_property -dict { PACKAGE_PIN D4    IOSTANDARD LVCMOS33 } [get_ports { tx_mclk }]; #IO_L11N_T1_SRCC_35 Sch=jd[1]
-set_property -dict { PACKAGE_PIN D3    IOSTANDARD LVCMOS33 } [get_ports { o_gnd }]; #IO_L12N_T1_MRCC_35 Sch=jd[2]
-set_property -dict { PACKAGE_PIN F4    IOSTANDARD LVCMOS33 } [get_ports { i_rxd }]; #IO_L13P_T2_MRCC_35 Sch=jd[3]
-set_property -dict { PACKAGE_PIN F3    IOSTANDARD LVCMOS33 } [get_ports { o_txd }]; #IO_L13N_T2_MRCC_35 Sch=jd[4]
+# set_property -dict { PACKAGE_PIN D3    IOSTANDARD LVCMOS33 } [get_ports { o_gnd }]; #IO_L12N_T1_MRCC_35 Sch=jd[2]
+# set_property -dict { PACKAGE_PIN F4    IOSTANDARD LVCMOS33 } [get_ports { i_rxd }]; #IO_L13P_T2_MRCC_35 Sch=jd[3]
+# set_property -dict { PACKAGE_PIN F3    IOSTANDARD LVCMOS33 } [get_ports { o_txd }]; #IO_L13N_T2_MRCC_35 Sch=jd[4]
 # set_property -dict { PACKAGE_PIN E2    IOSTANDARD LVCMOS33 } [get_ports { rx_mclk }]; #IO_L14P_T2_SRCC_35 Sch=jd[7]
 # set_property -dict { PACKAGE_PIN D2    IOSTANDARD LVCMOS33 } [get_ports { rx_lrck }]; #IO_L14N_T2_SRCC_35 Sch=jd[8]
 # set_property -dict { PACKAGE_PIN H2    IOSTANDARD LVCMOS33 } [get_ports { rx_sclk }]; #IO_L15P_T2_DQS_35 Sch=jd[9]
@@ -100,3 +100,8 @@ set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { o_led[
 # set_property -dict { PACKAGE_PIN E5    IOSTANDARD LVCMOS33 } [get_ports { ck_an_n[7] }]; #IO_L5N_T0_AD13N_35 Sch=ad_n[13]
 # set_property -dict { PACKAGE_PIN A4    IOSTANDARD LVCMOS33 } [get_ports { ck_an_p[8] }]; #IO_L8P_T1_AD14P_35 Sch=ad_p[14]
 # set_property -dict { PACKAGE_PIN A3    IOSTANDARD LVCMOS33 } [get_ports { ck_an_n[8] }]; #IO_L8N_T1_AD14N_35 Sch=ad_n[14]
+
+# A9 should be an input to the FPGA top-level (input logic uart_tx_in), i.e. the input to a UART receiver in programmable logic:
+set_property -dict { PACKAGE_PIN A9 IOSTANDARD LVCMOS33 } [get_ports { i_rxd }]; #IO_L14N_T2_SRCC_16 Sch=uart_txd_in
+# D10 should be an output from the FPGA top-level (output logic uart_rx_out), i.e. the output from a UART transmitter in programmable logic:
+set_property -dict { PACKAGE_PIN D10 IOSTANDARD LVCMOS33 } [get_ports { o_txd }]; #IO_L19N_T3_VREF_16 Sch=uart_rxd_out

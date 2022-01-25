@@ -8,8 +8,8 @@ module uart_rx_tx_top (
   input              i_rxd,
   // output serial data line
   output             o_txd,
-  // output ground reference
-  output             o_gnd,
+  // // output ground reference
+  // output             o_gnd,
 
   // ARTY 8x SMT LED vector
   output logic [7:0] o_led
